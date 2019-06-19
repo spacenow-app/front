@@ -1,25 +1,44 @@
 import React from 'react';
 import logo from './logo.svg';
-import './App.css';
+import './App.scss';
+
+import ApolloClient, { gql } from "apollo-boost";
+import { ApolloProvider, Query } from "react-apollo";
+
+const ExchangeRates = () => (
+  <Query
+    query={gql`
+      {
+        listing {
+          listingId,
+          currency,
+          totalPrice
+        }
+      }
+    `}
+  >
+    {({ loading, error, data }: any) => {
+      if (loading) return <p>Loading...</p>;
+      if (error) return <p>Error :(</p>;
+
+      return data.listing.map(({ listingId, currency, totalPrice }: any, index: number) => (
+        <div key={index}>
+          <p>{listingId}: {currency} {totalPrice}</p>
+        </div>
+      ));
+    }}
+  </Query>
+);
+
+const client = new ApolloClient({
+  uri: "http://localhost:4002/graphql"
+});
 
 const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ApolloProvider client={client}>
+      <ExchangeRates />
+    </ApolloProvider>
   );
 }
 
