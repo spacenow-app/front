@@ -9,10 +9,8 @@ const ExchangeRates = () => (
   <Query
     query={gql`
       {
-        listing {
-          listingId,
-          currency,
-          totalPrice
+        getAllBookings {
+          bookingId
         }
       }
     `}
@@ -21,9 +19,9 @@ const ExchangeRates = () => (
       if (loading) return <p>Loading...</p>;
       if (error) return <p>Error :(</p>;
 
-      return data.listing.map(({ listingId, currency, totalPrice }: any, index: number) => (
+      return data.getAllBookings.map(({ bookingId }: any, index: number) => (
         <div key={index}>
-          <p>{listingId}: {currency} {totalPrice}</p>
+          <p>{bookingId}</p>
         </div>
       ));
     }}
@@ -31,7 +29,7 @@ const ExchangeRates = () => (
 );
 
 const client = new ApolloClient({
-  uri: "http://localhost:4002/graphql"
+  uri: "http://localhost:4000/graphql"
 });
 
 const App: React.FC = () => {
