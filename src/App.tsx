@@ -5,23 +5,37 @@ import './App.scss';
 import ApolloClient, { gql } from "apollo-boost";
 import { ApolloProvider, Query } from "react-apollo";
 
-const ExchangeRates = () => (
+const Users = () => (
   <Query
     query={gql`
       {
-        getAllBookings {
-          bookingId
+        getAllUsers {
+          id
+          email
+          password
+          isEmailConfirmed
         }
       }
     `}
   >
     {({ loading, error, data }: any) => {
       if (loading) return <p>Loading...</p>;
-      if (error) return <p>Error :(</p>;
+      if (error) return <p><pre>Bad: {error.graphQLErrors.map(({ message }: any, i: number) => (
+        <span key={i}>{message}</span>
+      ))}
+      </pre></p>;
 
-      return data.getAllBookings.map(({ bookingId }: any, index: number) => (
+      return data.getAllUsers.map(({ 
+        id,
+        email,
+        password,
+        isEmailConfirmed
+       }: any, index: number) => (
         <div key={index}>
-          <p>{bookingId}</p>
+          <p>{id}</p>
+          <p>{email}</p>
+          <p>{password}</p>
+          <p>{isEmailConfirmed}</p>
         </div>
       ));
     }}
@@ -35,7 +49,7 @@ const client = new ApolloClient({
 const App: React.FC = () => {
   return (
     <ApolloProvider client={client}>
-      <ExchangeRates />
+      <Users />
     </ApolloProvider>
   );
 }
