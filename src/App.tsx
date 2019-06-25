@@ -1,5 +1,4 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.scss';
 import { ApolloProvider, Query } from "react-apollo";
 import gql from "graphql-tag";
@@ -13,10 +12,7 @@ const httpLink = createHttpLink({
 });
 
 const authLink = setContext((_, { headers }) => {
-  // get the authentication token from local storage if it exists
   const token = localStorage.getItem('token');
-  // return the headers to the context so httpLink can read them
-  console.log("TOKEN", token)
   return {
     headers: {
       ...headers,
