@@ -1,29 +1,58 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.scss';
-
-import ApolloClient, { gql } from "apollo-boost";
 import { ApolloProvider, Query } from "react-apollo";
+import gql from "graphql-tag";
+import { ApolloClient } from 'apollo-client';
+import { createHttpLink } from 'apollo-link-http';
+import { setContext } from 'apollo-link-context';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+
+const httpLink = createHttpLink({
+  uri: 'http://localhost:4000/graphql'
+});
+
+const authLink = setContext((_, { headers }) => {
+  // get the authentication token from local storage if it exists
+  const token = localStorage.getItem('token');
+  // return the headers to the context so httpLink can read them
+  console.log("TOKEN", token)
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : "",
+    }
+  }
+});
+
+const client = new ApolloClient({
+  link: authLink.concat(httpLink),
+  cache: new InMemoryCache()
+});
+
+const GET_USERS = gql`
+  {
+    getAllUsers {
+      id
+      email
+      password
+      isEmailConfirmed
+    }
+  }
+`;
+
 
 const Users = () => (
-  <Query
-    query={gql`
-      {
-        getAllUsers {
-          id
-          email
-          password
-          isEmailConfirmed
-        }
-      }
-    `}
-  >
+  <Query query={GET_USERS}>
     {({ loading, error, data }: any) => {
       if (loading) return <p>Loading...</p>;
-      if (error) return <p><pre>Bad: {error.graphQLErrors.map(({ message }: any, i: number) => (
-        <span key={i}>{message}</span>
-      ))}
-      </pre></p>;
+      if (error) return (
+        <div>
+          Bad: {error.graphQLErrors.map(({ message }: any, i: number) => (
+            <span key={i}>{message}</span>
+          ))}
+        </div>
+      )
 
       return data.getAllUsers.map(({ 
         id,
@@ -41,10 +70,6 @@ const Users = () => (
     }}
   </Query>
 );
-
-const client = new ApolloClient({
-  uri: "http://localhost:4000/graphql"
-});
 
 const App: React.FC = () => {
   return (
