@@ -1,70 +1,56 @@
-import React from 'react';
-import './App.scss';
-import { ApolloProvider, Query } from "react-apollo";
+import React from "react";
+import "./App.scss";
+import { ApolloProvider, Mutation } from "react-apollo";
 import gql from "graphql-tag";
-import { ApolloClient } from 'apollo-client';
-import { createHttpLink } from 'apollo-link-http';
-import { setContext } from 'apollo-link-context';
-import { InMemoryCache } from 'apollo-cache-inmemory';
+import { ApolloClient } from "apollo-client";
+import { createUploadLink } from "apollo-upload-client";
+import { createHttpLink } from "apollo-link-http";
+import { setContext } from "apollo-link-context";
+import { InMemoryCache } from "apollo-cache-inmemory";
 
 const httpLink = createHttpLink({
-  uri: 'http://localhost:4000/graphql'
+  uri: "http://localhost:4000/graphql"
 });
 
 const authLink = setContext((_, { headers }) => {
-  const token = localStorage.getItem('id_token');
+  const token = localStorage.getItem("id_token");
   return {
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : "",
+      authorization: token ? `Bearer ${token}` : ""
     }
-  }
+  };
 });
 
 const client = new ApolloClient({
-  link: authLink.concat(httpLink),
+  // link: authLink.concat(httpLink),
+  link: createUploadLink({ uri: "http://localhost:4000/graphql" }),
   cache: new InMemoryCache()
 });
 
-const GET_USERS = gql`
-  {
-    getAllUsers {
+export const CREATE_ASSET = gql`
+  mutation createAsset($file: Upload!) {
+    createAsset(file: $file) {
       id
-      email
-      password
-      isEmailConfirmed
     }
   }
 `;
 
-
 const Users = () => (
-  <Query query={GET_USERS}>
-    {({ loading, error, data }: any) => {
-      if (loading) return <p>Loading...</p>;
-      if (error) return (
-        <div>
-          Bad: {error.graphQLErrors.map(({ message }: any, i: number) => (
-            <span key={i}>{message}</span>
-          ))}
-        </div>
-      )
-
-      return data.getAllUsers.map(({ 
-        id,
-        email,
-        password,
-        isEmailConfirmed
-       }: any, index: number) => (
-        <div key={index}>
-          <p>{id}</p>
-          <p>{email}</p>
-          <p>{password}</p>
-          <p>{isEmailConfirmed}</p>
-        </div>
-      ));
-    }}
-  </Query>
+  <Mutation mutation={CREATE_ASSET}>
+    {(createAsset: any) => (
+      <input
+        type="file"
+        required
+        onChange={({
+          target: {
+            validity,
+            files: [file]
+          }
+        }: any) => validity.valid && createAsset({ variables: { file } })}
+      />
+    )}
+  </Mutation>
 );
 
 const App: React.FC = () => {
@@ -73,6 +59,6 @@ const App: React.FC = () => {
       <Users />
     </ApolloProvider>
   );
-}
+};
 
 export default App;
